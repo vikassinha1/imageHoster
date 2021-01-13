@@ -1,6 +1,7 @@
 package ImageHoster.repository;
 
 import ImageHoster.model.Image;
+import ImageHoster.model.User;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.*;
@@ -96,18 +97,23 @@ public class ImageRepository {
     //If you use remove() method on the object which is not in persistent state, an exception is thrown
     //The transaction is committed if it is successful
     //The transaction is rolled back in case of unsuccessful transaction
-    public void deleteImage(Integer imageId) {
+    public boolean deleteImage(Integer imageId, User user) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction transaction = em.getTransaction();
 
         try {
-            transaction.begin();
             Image image = em.find(Image.class, imageId);
-            em.remove(image);
-            transaction.commit();
+            if(image.getUser().getId().equals(user.getId())) {
+                transaction.begin();
+                em.remove(image);
+                transaction.commit();
+                return true;
+            } else {
+                return false;
+            }
         } catch (Exception e) {
             transaction.rollback();
         }
+        return false;
     }
-
 }
