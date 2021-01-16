@@ -93,13 +93,20 @@ public class ImageController {
     //The method first needs to convert the list of all the tags to a string containing all the tags separated by a comma and then add this string in a Model type object
     //This string is then displayed by 'edit.html' file as previous tags of an image
     @RequestMapping(value = "/editImage")
-    public String editImage(@RequestParam("imageId") Integer imageId, Model model) {
+    public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session) {
         Image image = imageService.getImage(imageId);
-
-        String tags = convertTagsToString(image.getTags());
-        model.addAttribute("image", image);
-        model.addAttribute("tags", tags);
-        return "images/edit";
+        User user = (User) session.getAttribute("loggeduser");
+        if(user.getId().equals(image.getUser().getId())) {
+            String tags = convertTagsToString(image.getTags());
+            model.addAttribute("image", image);
+            model.addAttribute("tags", tags);
+            return "images/edit";
+        } else {
+            model.addAttribute("editError",true);
+            model.addAttribute("image", image);
+            model.addAttribute("tags", image.getTags());
+            return "images/image";
+        }
     }
 
     //This controller method is called when the request pattern is of type 'images/edit' and also the incoming request is of PUT type
@@ -118,29 +125,19 @@ public class ImageController {
 
         Image image = imageService.getImage(imageId);
         User user = (User) session.getAttribute("loggeduser");
-        if(user.getId() == image.getUser().getId()) {
-            String updatedImageData = convertUploadedFileToBase64(file);
-            List<Tag> imageTags = findOrCreateTags(tags);
-
-            if (updatedImageData.isEmpty())
-                updatedImage.setImageFile(image.getImageFile());
-            else {
-                updatedImage.setImageFile(updatedImageData);
-            }
-
-            updatedImage.setId(imageId);
-            updatedImage.setUser(user);
-            updatedImage.setTags(imageTags);
-            updatedImage.setDate(new Date());
-
-            imageService.updateImage(updatedImage);
-            return "redirect:/images/" + updatedImage.getTitle();
-        } else {
-            model.addAttribute("editError",true);
-            model.addAttribute("image", image);
-            model.addAttribute("tags", tags);
-            return "images/image";
+        String updatedImageData = convertUploadedFileToBase64(file);
+        List<Tag> imageTags = findOrCreateTags(tags);
+        if (updatedImageData.isEmpty())
+            updatedImage.setImageFile(image.getImageFile());
+        else {
+            updatedImage.setImageFile(updatedImageData);
         }
+        updatedImage.setId(imageId);
+        updatedImage.setUser(user);
+        updatedImage.setTags(imageTags);
+        updatedImage.setDate(new Date());
+        imageService.updateImage(updatedImage);
+        return "redirect:/images/" + updatedImage.getTitle();
     }
 
 
@@ -156,9 +153,9 @@ public class ImageController {
         } else {
             Image image = imageService.getImage(imageId);
             model.addAttribute("deleteError",true);
-            String tags = convertTagsToString(image.getTags());
+            //String tags = convertTagsToString(image.getTags());
             model.addAttribute("image", image);
-            model.addAttribute("tags", tags);
+            model.addAttribute("tags", image.getTags());
             return "/images/image";
         }
     }
