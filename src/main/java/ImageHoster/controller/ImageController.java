@@ -4,7 +4,7 @@ import ImageHoster.model.Comment;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
 import ImageHoster.model.User;
-import ImageHoster.service.CommenService;
+import ImageHoster.service.CommentService;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +28,6 @@ public class ImageController {
 
     @Autowired
     private TagService tagService;
-
-    @Autowired
-    private CommenService commentService;
 
     //This method displays all the images in the user home page after successful login
     @RequestMapping("images")
@@ -170,28 +167,6 @@ public class ImageController {
         }
     }
 
-
-    //http://localhost:8080/image/15/B%20uploaded%20-%20add%20new/comments
-    //This controller method will be called when any user will add any comments to any image. Comments are open for all logged in users.
-    @RequestMapping(value = "/image/{imageId}/{imageTitle}/comments", method = RequestMethod.POST)
-    public String createComment(@PathVariable(name = "imageId") Integer imageId, @RequestParam(name="comment") String comment, HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggeduser");
-        System.out.println("user id : "+user.getId()+" "+user.getUsername());
-        Comment newComment = new Comment();
-        newComment.setText(comment);
-        newComment.setCreatedDate(new Date());
-        newComment.setUser(user);
-        newComment.setImage(imageService.getImage(imageId));
-        commentService.createComment(newComment);
-
-        Image image = imageService.getImage(imageId);
-        List<Comment> comments = image.getComments();
-        comments.add(newComment);
-        image.setComments(comments);
-        imageService.updateImage(image);
-
-        return showImage(imageId,model);
-    }
 
     //This method converts the image to Base64 format
     private String convertUploadedFileToBase64(MultipartFile file) throws IOException {
