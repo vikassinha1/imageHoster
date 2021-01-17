@@ -58,6 +58,12 @@ public class ImageController {
         return "images/image";
     }
 
+    //Additional mapping required as per the comments controller.
+    @RequestMapping("/images/{id}/{imageTitle}")
+    public String showImage(@PathVariable("id") Integer id, @PathVariable(name="imageTitle") String imageTitle, Model model) {
+        return showImage(id,model);
+    }
+
     //This controller method is called when the request pattern is of type 'images/upload'
     //The method returns 'images/upload.html' file
     @RequestMapping("/images/upload")
@@ -107,7 +113,7 @@ public class ImageController {
             model.addAttribute("comments", image.getComments());
             return "images/edit";
         } else {
-            model.addAttribute("editError",true);
+            model.addAttribute("editError","Only the owner of the image can edit the image");
             model.addAttribute("image", image);
             model.addAttribute("tags", image.getTags());
             model.addAttribute("comments", image.getComments());
@@ -154,11 +160,13 @@ public class ImageController {
     public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId, HttpSession session, Model model) {
         User user = (User) session.getAttribute("loggeduser");
         System.out.println("user id : "+user.getId()+" "+user.getUsername());
-        if(imageService.deleteImage(imageId,user)){
+        Image image = imageService.getImage(imageId);
+
+        if(user.getId().equals(image.getUser().getId())){
+            imageService.deleteImage(imageId);
             return "redirect:/images";
         } else {
-            Image image = imageService.getImage(imageId);
-            model.addAttribute("deleteError",true);
+            model.addAttribute("deleteError","Only the owner of the image can delete the image");
             //String tags = convertTagsToString(image.getTags());
             model.addAttribute("image", image);
             model.addAttribute("tags", image.getTags());

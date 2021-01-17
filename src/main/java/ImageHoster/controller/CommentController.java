@@ -31,7 +31,10 @@ public class CommentController {
     //http://localhost:8080/image/15/B%20uploaded%20-%20add%20new/comments
     //This controller method will be called when any user will add any comments to any image. Comments are open for all logged in users.
     @RequestMapping(value = "/image/{imageId}/{imageTitle}/comments", method = RequestMethod.POST)
-    public String createComment(@PathVariable(name = "imageId") Integer imageId, @RequestParam(name="comment") String comment, HttpSession session, Model model) {
+    public String createComment(@PathVariable(name = "imageId") Integer imageId,
+                                @PathVariable(name="imageTitle") String imageTitle,
+                                @RequestParam(name="comment") String comment,
+                                HttpSession session, Model model) {
         User user = (User) session.getAttribute("loggeduser");
         System.out.println("user id : "+user.getId()+" "+user.getUsername());
         Comment newComment = new Comment();
@@ -51,7 +54,7 @@ public class CommentController {
         model.addAttribute("tags", image.getTags());
         model.addAttribute("comments", image.getComments());
         System.out.println("****************Image coments : "+image.getComments());
-        return "images/image";
+        return "redirect:/images/"+imageId+"/"+imageTitle;
     }
 
 }
